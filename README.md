@@ -39,8 +39,8 @@ A cloud-native Weather Forecast application demonstrating automatic, demand-driv
 ## 🛠 Build & Push Docker Image
 
 ```sh
-docker build -t gdtsitlauri/weather-app:latest .
-docker push gdtsitlauri/weather-app:latest
+docker build -t /weather-app:latest .
+docker push  /weather-app:latest
 ```
 
 ## ☸️ Deploy to Kubernetes
@@ -48,10 +48,10 @@ docker push gdtsitlauri/weather-app:latest
 1. **Deploy core resources**
 
    ```sh
-   kubectl apply -f k8s/deployment.yaml       -n gtsitlaouri-priv
-   kubectl apply -f k8s/service.yaml          -n gtsitlaouri-priv
-   kubectl apply -f k8s/rbac-scalers.yaml     -n gtsitlaouri-priv
-   kubectl apply -f k8s/hpa.yaml              -n gtsitlaouri-priv
+   kubectl apply -f k8s/deployment.yaml       
+   kubectl apply -f k8s/service.yaml        
+   kubectl apply -f k8s/rbac-scalers.yaml     
+   kubectl apply -f k8s/hpa.yaml             
    ```
    
 ## 🎬 Usage
@@ -72,12 +72,12 @@ docker push gdtsitlauri/weather-app:latest
 
 * Pods & Metrics
   ```sh
-  kubectl get pods -w -n gtsitlaouri-priv
-  kubectl top pods         -n gtsitlaouri-priv
+  kubectl get pods 
+  kubectl top pods        
   ```
 * Application Logs
   ```sh
-  kubectl logs deployment/weather-app-deployment -n gtsitlaouri-priv
+  kubectl logs deployment/weather-app-deployment 
   ```
 
 ## 💡 How It Works
@@ -96,7 +96,3 @@ docker push gdtsitlauri/weather-app:latest
 * [Chart.js](https://www.chartjs.org/)
 
 ---
-
-## Feel free to customize and extend! 🚀
-
-License: MIT
