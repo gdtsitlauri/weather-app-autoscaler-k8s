@@ -18,7 +18,7 @@ spec:
       containers:
         - name: weather-app
           image: gdtsitlauri/weather-app:latest
-          imagePullPolicy: Always   # για να τραβήσει τη νεότερη έκδοση
+          imagePullPolicy: Always   # pull the newest image on every start
           ports:
             - containerPort: 3000
           env:
@@ -30,3 +30,8 @@ spec:
               value: "weather-app-deployment"
             - name: NODE_ENV
               value: "production"
+            - name: WEATHER_API_KEY          # from the Secret created as in the README
+              valueFrom:
+                secretKeyRef:
+                  name: weather-api
+                  key: api-key

@@ -12,9 +12,9 @@ const __dirname  = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Constants
-const DEPLOYMENT_NAME = 'weather-app-deployment';
-const NAMESPACE       = 'gtsitlaouri-priv';
+// Constants (set by k8s/deployment.yaml)
+const DEPLOYMENT_NAME = process.env.DEPLOYMENT_NAME || 'weather-app-deployment';
+const NAMESPACE       = process.env.NAMESPACE || 'default';
 
 app.use(express.json());
 app.use(express.static(__dirname));
@@ -72,7 +72,8 @@ setInterval(async () => {
 // Weather endpoint
 app.post('/weather', async (req, res) => {
   const city   = req.body.city;
-  const apiKey = 'REMOVED_API_KEY';
+  const apiKey = process.env.WEATHER_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'WEATHER_API_KEY is not set' });
   const url    = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${encodeURIComponent(city)}&days=7`;
 
   try {

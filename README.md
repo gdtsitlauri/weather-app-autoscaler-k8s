@@ -1,98 +1,52 @@
-# WeatherApp: Elastic Kubernetes‐Scaled 7-Day Forecast Service
+# Weather App with a Custom Kubernetes Autoscaler
 
-A cloud-native Weather Forecast application demonstrating automatic, demand-driven scaling on Kubernetes.
+**Can a service scale its own pods from the request rate it measures, instead of from CPU load?**
 
-## 🚀 Features
+A 7-day weather forecast service (Node.js, WeatherAPI.com) deployed on Kubernetes, with an autoscaler
+built into the service itself: every 5 seconds it measures the requests per second it received and
+sets the number of replicas of its own deployment through the Kubernetes API. A load generator that
+follows a sine wave and a live chart of the replica count show the autoscaler at work. A team project
+for a course at the University of Thessaly; `report.pdf` (in Greek) describes the design.
 
-- **7-day weather forecast** via WeatherAPI.com  
-- **Custom autoscaler**: scales pods based on measured HTTP RPS  
-- **Oscillating load** generator (`wrk` sine-wave pattern) via `/demand` endpoint  
-- **Real-time monitoring** of replica count with Chart.js  
-- **RBAC-limited scaling** using Kubernetes subresource `deployments/scale`  
-- Supports optional **Horizontal Pod Autoscaler (HPA)** if `metrics-server` is available
+| part | what it does |
+| --- | --- |
+| `server.js` | the service: `/weather` (forecast from WeatherAPI.com), `/metrics` (replica history), `/demand` (load test); counts requests and runs the autoscaling loop |
+| autoscaler | every 5 s: requests per second = requests / 5, desired replicas = ceil(rps / 1) between 1 and 5, set through the `deployments/scale` subresource |
+| load test | `/demand` runs `wrk` for 60 s with a number of connections that follows a sine wave (20 ± 20) |
+| `index.html` | forecast form and a Chart.js graph of the replica count, refreshed every 5 s |
+| `k8s/` | Deployment, Service, RBAC that lets the pod change only the scale of its own deployment, and an optional Horizontal Pod Autoscaler for comparison |
 
-## 📦 Repository Layout
+## Running
 
-```
-/WeatherApp
-│
-├── Dockerfile
-├── package.json
-├── server.js
-├── index.html
-│
-├── k8s/
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── rbac-scalers.yaml
-│   └── hpa.yaml            
-│
-└── README.md
-```
-
-## ⚙️ Prerequisites
-
-- Docker (Engine ≥ 20.10)  
-- Kubernetes cluster (≥ v1.25) with kubectl configured  
-- (Optional) metrics-server installed for HPA  
-
-## 🛠 Build & Push Docker Image
+Requirements: Docker, a Kubernetes cluster (1.25 or later) with `kubectl`, and a WeatherAPI.com key
+(free plan). The manifests use the namespace `gtsitlaouri-priv` of the course cluster; change it to yours.
 
 ```sh
-docker build -t /weather-app:latest .
-docker push  /weather-app:latest
+docker build -t <registry>/weather-app:latest .
+docker push <registry>/weather-app:latest           # and set this image in k8s/deployment.yaml
+
+kubectl create secret generic weather-api --from-literal=api-key=<your WeatherAPI.com key>
+kubectl apply -f k8s/rbac-scalers.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/hpa.yaml                       # optional, needs metrics-server
 ```
 
-## ☸️ Deploy to Kubernetes
+The key reaches the service only through the `WEATHER_API_KEY` environment variable, which the
+Deployment fills from the Secret; it is not stored in the code or the image. Locally:
+`WEATHER_API_KEY=<key> docker compose up`.
 
-1. **Deploy core resources**
+Then open `http://<node-ip>:<node-port>/index.html`, ask for a forecast, and press **Demand** to start
+the sine-wave load; the chart shows the replicas following it. `kubectl get pods` and
+`kubectl logs deployment/weather-app-deployment` show the same from the cluster side.
 
-   ```sh
-   kubectl apply -f k8s/deployment.yaml       
-   kubectl apply -f k8s/service.yaml        
-   kubectl apply -f k8s/rbac-scalers.yaml     
-   kubectl apply -f k8s/hpa.yaml             
-   ```
-   
-## 🎬 Usage
+## Notes
 
-1. **Access the UI**  
-   Open your browser to:  
-   ```
-   http://<NODE_IP>:<NODE_PORT>/index.html
-   ```
-2. **Get Forecast**  
-   Enter a city name → click Get Forecast  
-3. **View Real-Time Scaling**  
-   Watch the Chart.js graph update every 5 s with current replica count  
-4. **Stress Test / Sine-Wave Load**  
-   Click Demand to run a 60 s sine-wave wrk load pattern  
+- Each replica runs the autoscaling loop and counts only the requests it receives itself, so with several
+  replicas behind the Service the measured rate is that pod's share of the traffic.
+- One pod per request per second and a maximum of 5 replicas are the values used in the project; they
+  are constants in `server.js`.
 
-## 🔍 Monitoring & Logs
+## Authors
 
-* Pods & Metrics
-  ```sh
-  kubectl get pods 
-  kubectl top pods        
-  ```
-* Application Logs
-  ```sh
-  kubectl logs deployment/weather-app-deployment 
-  ```
-
-## 💡 How It Works
-
-1. **RPS Metering:** Express middleware counts incoming requests.  
-2. **Autoscaling Loop:** Every 5 s, compute rps = requests/5, decide desired replicas (1–5), and call  
-   `replaceNamespacedDeploymentScale({ name, namespace, body:{spec:{replicas}} })`.  
-3. **Demand Endpoint:** Spawns wrk processes with conns = offset + amplitude·sin(…) for sine-wave load.  
-4. **Chart.js:** Front-end polls `/metrics` every 5 s and redraws live replica graph.  
-
-## 📖 Further Reading
-
-* [Kubernetes Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
-* [@kubernetes/client-node](https://github.com/kubernetes-client/javascript)
-* [wrk Benchmark Tool](https://github.com/wg/wrk)
-* [Chart.js](https://www.chartjs.org/)
-
----
+George David Tsitlauri, Dimitris Christou and Nikiforos Planakis, University of Thessaly.
