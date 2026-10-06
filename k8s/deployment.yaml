@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: weather-app
-          image: gdtsitlauri/weather-app:latest
+          image: <registry>/weather-app:latest   # the image you built and pushed (README)
           imagePullPolicy: Always   # pull the newest image on every start
           ports:
             - containerPort: 3000
