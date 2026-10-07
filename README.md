@@ -16,6 +16,24 @@ for a course at the University of Thessaly; `report.pdf` (in Greek) describes th
 | `index.html` | forecast form and a Chart.js graph of the replica count, refreshed every 5 s |
 | `k8s/` | Deployment, Service, RBAC that lets the pod change only the scale of its own deployment, and an optional Horizontal Pod Autoscaler for comparison |
 
+## Limitations (reported as such)
+
+- Each replica runs the autoscaling loop and counts only the requests it receives itself, so with several
+  replicas behind the Service the measured rate is that pod's share of the traffic.
+- One pod per request per second and a maximum of 5 replicas are the values used in the project; they
+  are constants in `server.js`.
+
+## Folder map
+
+```
+weather-app-autoscaler-k8s/
+  server.js                 the service and its autoscaling loop
+  index.html                forecast form and replica chart
+  k8s/                      deployment.yaml, service.yaml, rbac-scalers.yaml, hpa.yaml
+  Dockerfile, docker-compose.yml, package.json, package-lock.json
+  report.pdf                the project report (in Greek)
+```
+
 ## Running
 
 Requirements: Docker, a Kubernetes cluster (1.25 or later) with `kubectl`, and a WeatherAPI.com key
@@ -40,13 +58,6 @@ Then open `http://<node-ip>:<node-port>/index.html`, ask for a forecast, and pre
 the sine-wave load; the chart shows the replicas following it. `kubectl get pods` and
 `kubectl logs deployment/weather-app-deployment` show the same from the cluster side.
 
-## Notes
+## Authors and license
 
-- Each replica runs the autoscaling loop and counts only the requests it receives itself, so with several
-  replicas behind the Service the measured rate is that pod's share of the traffic.
-- One pod per request per second and a maximum of 5 replicas are the values used in the project; they
-  are constants in `server.js`.
-
-## Authors
-
-George David Tsitlauri, Dimitris Christou and Nikiforos Planakis, University of Thessaly.
+George David Tsitlauri, Dimitris Christou and Nikiforos Planakis, University of Thessaly. MIT license ([LICENSE](LICENSE)).
