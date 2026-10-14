@@ -6,7 +6,7 @@ A 7-day weather forecast service (Node.js, WeatherAPI.com) deployed on Kubernete
 built into the service itself: every 5 seconds it measures the requests per second it received and
 sets the number of replicas of its own deployment through the Kubernetes API. A load generator that
 follows a sine wave and a live chart of the replica count show the autoscaler at work. A team project
-for a course at the University of Thessaly; `report.pdf` (in Greek) describes the design.
+for a course at the University of Thessaly.
 
 | part | what it does |
 | --- | --- |
@@ -31,7 +31,6 @@ weather-app-autoscaler-k8s/
   index.html                forecast form and replica chart
   k8s/                      deployment.yaml, service.yaml, rbac-scalers.yaml, hpa.yaml
   Dockerfile, docker-compose.yml, package.json, package-lock.json
-  report.pdf                the project report (in Greek)
 ```
 
 ## Running
