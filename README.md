@@ -16,12 +16,29 @@ for a course at the University of Thessaly.
 | `index.html` | forecast form and a Chart.js graph of the replica count, refreshed every 5 s |
 | `k8s/` | Deployment, Service, RBAC that lets the pod change only the scale of its own deployment, and an optional Horizontal Pod Autoscaler for comparison |
 
+## Main results
+
+Observed on a 3-node course cluster (2 vCPU, 4 GB each), one run per scenario; all values, how they were
+read and the with/without comparison are in [`results/results.md`](results/results.md).
+
+1. **The replicas follow the load.** Under the sine-wave load (peak about 40 requests/s) the deployment
+   went 1 → 3 → 5 → 2 → 1 pods in each 60 s cycle, with the autoscaler capped at 5 replicas; mean latency
+   stayed under 120 ms and p99 under 200 ms.
+2. **At about 80 requests/s the cap holds.** With 100 constant connections the autoscaler asked for 80 pods,
+   ran 5, and latency stayed at 150 to 180 ms with each pod near half a CPU core.
+3. **The loop reacts in seconds.** The request rate is sampled every 5 s, and each scale call to the
+   Kubernetes API took 150 to 200 ms.
+
 ## Limitations (reported as such)
 
 - Each replica runs the autoscaling loop and counts only the requests it receives itself, so with several
   replicas behind the Service the measured rate is that pod's share of the traffic.
 - One pod per request per second and a maximum of 5 replicas are the values used in the project; they
   are constants in `server.js`.
+- The load generator of `/demand` runs inside the pod against its own port, so the replicas it starts do
+  not receive that load. The comparison with a fixed deployment in `results/results.md` is what was
+  observed, not a controlled measurement of what the extra replicas contribute.
+- Every scenario ran once and the values were read from wrk and kubectl during the run.
 
 ## Folder map
 
@@ -30,6 +47,7 @@ weather-app-autoscaler-k8s/
   server.js                 the service and its autoscaling loop
   index.html                forecast form and replica chart
   k8s/                      deployment.yaml, service.yaml, rbac-scalers.yaml, hpa.yaml
+  results/                  results.md: the scenarios, the measured values and how they were read
   Dockerfile, docker-compose.yml, package.json, package-lock.json
 ```
 
