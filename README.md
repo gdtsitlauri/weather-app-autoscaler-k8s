@@ -77,4 +77,4 @@ the sine-wave load; the chart shows the replicas following it. `kubectl get pods
 
 ## Authors and license
 
-George David Tsitlauri, Dimitris Christou and Nikiforos Planakis, Department of Informatics and Telecommunications, University of Thessaly, Lamia, Greece. MIT license ([LICENSE](LICENSE)).
+George David Tsitlauri, Dimitris Christou and Nikiforos Planakis, Department of Informatics and Telecommunications, University of Thessaly, Greece. MIT license ([LICENSE](LICENSE)).
